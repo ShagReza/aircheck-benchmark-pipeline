@@ -1,0 +1,6 @@
+# Snakemake's own bookkeeping and any environments it creates here
+.snakemake/
+# Local settings (copy config/*.yaml and edit, or use --configfile)
+config/*.local.yaml
+pipeline.log
+__pycache__/

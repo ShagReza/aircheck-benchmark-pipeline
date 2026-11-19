@@ -1,0 +1,21 @@
+# What to run. Copy this file, edit it, and point Snakemake at it with --configfile if you keep several.
+
+# Where the pipeline puts everything it makes: <results_root>/<experiment>/
+# Pick a disk with room: a fine-tuning experiment is tens of GB per model.
+results_root: /home/jupyter/benchmark
+
+# One entry per experiment: a dataset from config/datasets.yaml plus the fold settings.
+# Use a new name for other conditions, so results never mix.
+experiments:
+  wdr91-cluster:
+    dataset: wdr91
+    cv_method: cluster      # cluster (chemistry held out), stratified or random
+    n_folds: 5              # leave out for the method's default
+
+  # wdr91-stratified:
+  #   dataset: wdr91
+  #   cv_method: stratified
+  #   n_folds: 5
+
+# Which models of config/models.yaml to run. Leave empty for all of them.
+models: [mmelon, mammal]

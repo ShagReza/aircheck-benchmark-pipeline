@@ -1,0 +1,17 @@
+# The pipeline's own environment: enough to make the folds and write the report.
+# It never loads a model, so it is small and safe to create automatically
+# (snakemake --use-conda), unlike the model environments, which each fork's INSTALL.md builds.
+name: aircheck-benchmark-pipeline
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11
+  - snakemake-minimal>=8
+  - pandas
+  - pyarrow
+  - scikit-learn
+  - pyyaml
+  - pip
+  - pip:
+      - aircheck-benchmark-core @ git+https://github.com/ShagReza/aircheck-benchmark-core.git@main

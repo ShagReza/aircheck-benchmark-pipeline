@@ -1,0 +1,25 @@
+# One entry per model repository. Adding a model to the benchmark is one entry here, nothing else.
+#
+# repo          the fork's folder. It must have aircheck/benchmark/run_all.sh.
+# env           the environment that fork runs in (see its aircheck/INSTALL.md). The pipeline puts
+#               <env>/bin on the PATH; it never creates or changes environments.
+# import_check  a module the `check` rule imports to confirm that environment works before a long run.
+# only          which of the fork's runs to do (its run_all.sh --list prints the names). Leave empty for all.
+# extra_args    passed to every run.py call of that fork, e.g. ["--num-workers", "2"] on a small machine.
+# gpu           1 if its runs need the GPU (used with: snakemake --resources gpu=1, so they take turns).
+
+mmelon:
+  repo: ~/repos/biomed-multi-view
+  env: ~/envs/biomed-multiview
+  import_check: bmfm_sm
+  only: []
+  extra_args: []
+  gpu: 1
+
+mammal:
+  repo: ~/repos/biomed-multi-alignment
+  env: ~/envs/biomed-mammal
+  import_check: mammal
+  only: [finetune_lora, lgbm_pretrained]
+  extra_args: []
+  gpu: 1

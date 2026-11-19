@@ -1,0 +1,20 @@
+# One entry per dataset. train is used to build the folds; test is the final test set, scored by every model.
+#
+# Keep data outside the repositories, so it is never committed. Both files need a SMILES and a 0/1 label
+# column; cluster folds also need a fingerprint column in the train file.
+
+wdr91:
+  train: ~/Datasets/wdr91/train.parquet
+  test: ~/Datasets/wdr91/test.parquet
+  smiles_col: SMILES
+  label_col: LABEL
+  fingerprint_col: ECFP4
+
+# The small sample data in the MMELON fork, for checking that the pipeline works end to end.
+# Its actives fall mostly in one chemical cluster, so cluster folds give a single fold.
+sample:
+  train: ~/repos/biomed-multi-view/aircheck/sample_data/train.parquet
+  test: ~/repos/biomed-multi-view/aircheck/sample_data/test.parquet
+  smiles_col: SMILES
+  label_col: LABEL
+  fingerprint_col: ECFP4
