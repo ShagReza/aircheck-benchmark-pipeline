@@ -18,3 +18,11 @@ sample:
   smiles_col: SMILES
   label_col: LABEL
   fingerprint_col: ECFP4
+
+# A small PGK2 set for checking the pipeline end to end (see the folder's own note on how it was made).
+pgk2-mock:
+  train: ~/Datasets/benchmarking-project/pgk2-small-mock/train-pgk2-mock.parquet
+  test: ~/Datasets/benchmarking-project/pgk2-small-mock/test-pgk2-mock.parquet
+  smiles_col: SMILES
+  label_col: LABEL
+  fingerprint_col: ECFP4

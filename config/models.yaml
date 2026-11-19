@@ -12,14 +12,14 @@ mmelon:
   repo: ~/repos/biomed-multi-view
   env: ~/envs/biomed-multiview
   import_check: bmfm_sm
-  only: []
-  extra_args: []
+  only: [lgbm_pretrained_fused, lgbm_pretrained_text, lgbm_pretrained_image, lgbm_pretrained_graph]
+  extra_args: ["--lgbm-params", "default"]
   gpu: 1
 
 mammal:
   repo: ~/repos/biomed-multi-alignment
   env: ~/envs/biomed-mammal
   import_check: mammal
-  only: [finetune_lora, lgbm_pretrained]
-  extra_args: []
+  only: [lgbm_pretrained]
+  extra_args: ["--lgbm-params", "default"]
   gpu: 1
