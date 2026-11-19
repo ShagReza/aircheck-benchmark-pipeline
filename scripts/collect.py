@@ -20,14 +20,19 @@ SHOW = ["hit@200", "hit@100", "hit@50", "rocauc", "pr_auc"]
 
 
 def best_per_model(summary: pd.DataFrame, split: str = "test") -> pd.DataFrame:
-    """One row per model: its best run on `split`, by RANK_BY."""
-    rows = summary[summary["split"] == split]
-    if rows.empty:  # a run with --no-final has only test_ensemble
-        rows = summary[summary["split"] == "test_ensemble"]
-        split = "test_ensemble"
+    """One row per model: its best run, by RANK_BY.
+
+    A run made with --no-final has no `test` split, only `test_ensemble`, so each model falls back on its
+    own. `.head(1)` after sorting keeps one real row; `GroupBy.first()` would take each column's first
+    non-empty value and could mix two runs into a row that never existed.
+    """
+    rows = summary[summary["split"].isin([split, "test_ensemble"])].copy()
     if rows.empty:
         return pd.DataFrame()
-    best = rows.sort_values(RANK_BY, ascending=False).groupby("model", as_index=False).first()
+    # Prefer the asked-for split where a model has it
+    rows["preferred"] = (rows["split"] == split).astype(int)
+    best = (rows.sort_values(["preferred", RANK_BY], ascending=False)
+                .groupby("model", as_index=False, sort=False).head(1))
     columns = [c for c in ["model", "name", "method", "split", "n", "n_pos", *SHOW] if c in best.columns]
     return best[columns].sort_values(RANK_BY, ascending=False).reset_index(drop=True)
 
@@ -59,8 +64,8 @@ def main(argv=None):
         print(f"Best run per model, by {RANK_BY} on the test set:")
         print(best.round(4).to_string(index=False))
         print(f"Saved {by_model}")
-    for what, path in paths.items():
-        print(f"Saved {path}" if what != "summary" else f"Saved {path}")
+    for path in paths.values():
+        print(f"Saved {path}")
 
 
 if __name__ == "__main__":

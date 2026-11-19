@@ -15,24 +15,83 @@ does the four things one repository cannot:
 ```
 <results_root>/<experiment>/
 ├── folds/                  made once, read by every model
-├── finetune_multiview/     a run: predictions.csv, run.json, progress.log, models/
-├── lgbm_pretrained/        ...
-├── report.md               every run, scored the same way
+├── mmelon/                 one folder per model
+│   ├── finetune_multiview/     a run: predictions.csv, run.json, progress.log, models/
+│   ├── lgbm_pretrained_fused/  ...
+│   └── embeddings/             shared by this model's LightGBM runs
+├── mammal/
+│   ├── finetune_lora/
+│   └── ...
+├── report.md               every model's runs, scored the same way
 ├── report_by_model.csv     the best run of each model on the test set
 └── .pipeline/              one log and marker per model
 ```
 
-## Setup
+## Start here: from nothing to a report
 
-1. **The model repositories and their environments**, one per model, each from its own `aircheck/INSTALL.md`.
-   The pipeline uses the environments you built; it never creates or changes them. Point `config/models.yaml`
-   at them.
-2. **This pipeline's own environment** (Snakemake plus core; it never loads a model):
-   ```bash
-   micromamba create -y -f envs/pipeline.yaml -p ~/envs/aircheck-pipeline
-   micromamba activate ~/envs/aircheck-pipeline
-   ```
-   Or let Snakemake make it: add `--use-conda` to the commands below.
+Four repositories, then one command. Everything below assumes `~/repos` and `~/envs`; use your own paths if
+you prefer.
+
+**1. Clone them**
+
+```bash
+mkdir -p ~/repos && cd ~/repos
+git clone git@github.com:ShagReza/aircheck-benchmark-pipeline.git   # this one: runs the benchmark
+git clone git@github.com:ShagReza/aircheck-benchmark-core.git       # folds, metrics, report (shared)
+git clone git@github.com:ShagReza/biomed-multi-view.git             # MMELON
+git clone git@github.com:ShagReza/biomed-multi-alignment.git        # MAMMAL
+```
+
+**2. Build one environment per model** — they need different versions of PyTorch and cannot share one. Each
+fork's `aircheck/INSTALL.md` has the steps, including installing `aircheck-benchmark-core` into it:
+
+```bash
+# MMELON  -> ~/envs/biomed-multiview     see ~/repos/biomed-multi-view/aircheck/INSTALL.md
+# MAMMAL  -> ~/envs/biomed-mammal        see ~/repos/biomed-multi-alignment/aircheck/INSTALL.md
+```
+
+**3. Build this pipeline's own environment** (Snakemake plus core; it never loads a model):
+
+```bash
+cd ~/repos/aircheck-benchmark-pipeline
+micromamba create -y -f envs/pipeline.yaml -p ~/envs/aircheck-pipeline
+micromamba activate ~/envs/aircheck-pipeline
+```
+
+**4. Say where your data and models are**, in `config/`:
+
+- `config/datasets.yaml` — your train and test files, and their column names.
+- `config/config.yaml` — the experiment to run (which dataset, which fold method) and where results go.
+- `config/models.yaml` — each fork's folder and environment, if you did not use the paths above.
+
+**5. Run it**
+
+```bash
+snakemake check --cores 1    # do the environments work?
+snakemake -n                 # the plan, running nothing
+snakemake --cores 4 --resources gpu=1
+```
+
+You get `<results_root>/<experiment>/report.md`: every model and method, scored identically, with
+`report_by_model.csv` naming the best run of each model.
+
+**What happens inside:** the pipeline makes the cross-validation folds once, then calls each fork's
+`aircheck/benchmark/run_all.sh` in that fork's environment, giving it those same folds. Each run writes only
+`predictions.csv` and `run.json`; the pipeline scores all of them together at the end. The models never
+compute their own metrics, which is what makes the comparison fair.
+
+**Adding your own model** means a fork with an `aircheck/benchmark/run_all.sh` that writes those two files,
+and one entry in `config/models.yaml`. Nothing else.
+
+## Environments
+
+The pipeline **uses** environments; it never creates or changes them. A model's environment is built once from
+its fork's `aircheck/INSTALL.md`, because those steps are model-specific (MMELON, for instance, needs a
+particular compiler to build `pytorch-fast-transformers`). `config/models.yaml` records where each one is, and
+`snakemake check` confirms each can import its model and core before a long run starts.
+
+Only the pipeline's own environment is automatic: it holds Snakemake and core and never loads a model, so
+`snakemake --use-conda` can build it from `envs/pipeline.yaml` instead of the `micromamba create` above.
 
 ## Run
 

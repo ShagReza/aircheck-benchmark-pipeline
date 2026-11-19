@@ -139,6 +139,8 @@ rule run_model:
         test=lambda w: str(path_of(dataset_of(w.experiment)["test"])),
         smiles=lambda w: dataset_of(w.experiment)["smiles_col"],
         label=lambda w: dataset_of(w.experiment)["label_col"],
+        fingerprint=lambda w: dataset_of(w.experiment).get("fingerprint_col", "ECFP4"),
+        method=lambda w: EXPERIMENTS[w.experiment]["cv_method"],
         folds=lambda w: folds_npz(w.experiment),
         only=lambda w: ("--only " + ",".join(MODELS[w.model]["only"]) if MODELS[w.model].get("only") else ""),
         extra=lambda w: " ".join(MODELS[w.model].get("extra_args", [])),
@@ -150,7 +152,8 @@ rule run_model:
         "PATH={params.env}/bin:$PATH {params.recipe} "
         "--experiment {wildcards.experiment} --root {params.root} "
         "--folds {params.folds} --train {params.train} --test {params.test} "
-        "--smiles-col {params.smiles} --label-col {params.label} --no-report "
+        "--smiles-col {params.smiles} --label-col {params.label} "
+        "--fingerprint-col {params.fingerprint} --cv-method {params.method} --no-report "
         "{params.only} {params.extra} > {log} 2>&1"
 
 
